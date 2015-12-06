@@ -85,6 +85,61 @@ function createBoxes(scene) {
     box2.checkCollisions = true;
     box2.scaling = new BABYLON.Vector3(0.2,2,8);
 }
+
+function createClickable(scene) {
+    var redBox = BABYLON.Mesh.CreateBox("red",.3, scene);
+    var redMat = new BABYLON.StandardMaterial("ground", scene);
+    redMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+    redMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+    redMat.emissiveColor = BABYLON.Color3.Red();
+    redBox.material = redMat;
+    redBox.position = new BABYLON.Vector3(.5, -8, -13);
+
+    var makeOverOut = function (mesh) {
+        mesh.actionManager.registerAction(new BABYLON.SetValueAction(BABYLON.ActionManager.OnPointerOutTrigger, mesh.material, "emissiveColor", mesh.material.emissiveColor));
+        mesh.actionManager.registerAction(new BABYLON.SetValueAction(BABYLON.ActionManager.OnPointerOverTrigger, mesh.material, "emissiveColor", BABYLON.Color3.White()));
+        mesh.actionManager.registerAction(new BABYLON.InterpolateValueAction(BABYLON.ActionManager.OnPointerOutTrigger, mesh, "scaling", new BABYLON.Vector3(1, 1, 1), 150));
+        mesh.actionManager.registerAction(new BABYLON.InterpolateValueAction(BABYLON.ActionManager.OnPointerOverTrigger, mesh, "scaling", new BABYLON.Vector3(1.1, 1.1, 1.1), 150));
+    }
+
+    redBox.actionManager = new BABYLON.ActionManager(scene);
+    makeOverOut(redBox);
+    var action = new BABYLON.InterpolateValueAction(BABYLON.ActionManager.OnPickTrigger, redBox, "visibility", 0, 100);
+    action.execute = function()
+    {
+        redBox.dispose();
+    }
+    redBox.actionManager.registerAction(action);
+}
+
+function createAnimation(scene) {
+    var redBox = BABYLON.Mesh.CreateBox("green",.8, scene);
+    var redMat = new BABYLON.StandardMaterial("ground", scene);
+    redMat.diffuseColor = new BABYLON.Color3(0, 1, 0);
+    redMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+    redMat.emissiveColor = BABYLON.Color3.Green();
+    redBox.material = redMat;
+    redBox.position = new BABYLON.Vector3(5, -8, -10);
+    redBox.checkCollisions = true;
+
+    var animation = new BABYLON.Animation("animation", "scaling.x", 30, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+    animation.setKeys([
+        { frame: 0, value: 1 },
+        { frame: 50, value: 0.2 },
+        { frame: 100, value: 1 }
+    ]);
+    redBox.animations.push(animation);
+
+    var animationRot = new BABYLON.Animation("animation", "rotation.x", 30, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+    animationRot.setKeys([
+        { frame: 0, value: Math.PI },
+        { frame: 50, value: Math.PI / 2 },
+        { frame: 100, value: Math.PI }
+    ]);
+    redBox.animations.push(animationRot);
+
+    scene.beginAnimation(redBox, 0, 100, true);
+}
 /**
  * Created by Camunda on 12/5/2015.
  */
@@ -103,6 +158,10 @@ var createScene = function (engine) {
     createGround(scene);
 
     createBoxes(scene);
+
+    createClickable(scene);
+
+    createAnimation(scene);
 
     return scene;
 }; // End of createScene function
